@@ -1,6 +1,6 @@
 """
-Adaptador para portfolio-analyzer/.
-Expone run_portfolio() como función de alto nivel lista para el orquestador.
+Adaptador para el motor de cálculo de portafolio.
+Prioridad: quant/ interno → PORTFOLIO_ANALYZER_PATH env → portfolio-analyzer/ sibling.
 """
 from __future__ import annotations
 
@@ -12,24 +12,34 @@ import pandas as pd
 
 
 # ---------------------------------------------------------------------------
-# Localización del módulo portfolio-analyzer
+# Localización del módulo de cálculo
 # ---------------------------------------------------------------------------
 
 def _find_pa_path() -> Path:
+    here = Path(__file__).resolve()
+    project_root = here.parents[2]  # financial-orchestrator/
+
+    # 1. Carpeta quant/ empaquetada dentro del proyecto (Streamlit Cloud)
+    internal = project_root / "quant"
+    if internal.exists() and (internal / "optimizacion.py").exists():
+        return internal
+
+    # 2. Variable de entorno PORTFOLIO_ANALYZER_PATH
     env_path = os.environ.get("PORTFOLIO_ANALYZER_PATH")
     if env_path:
         p = Path(env_path)
         if p.exists():
             return p
 
-    here = Path(__file__).resolve()
-    sibling = here.parents[2].parent / "portfolio-analyzer"
+    # 3. Carpeta sibling portfolio-analyzer/ (desarrollo local sin quant/)
+    sibling = project_root.parent / "portfolio-analyzer"
     if sibling.exists():
         return sibling
 
     raise FileNotFoundError(
-        "No se encontró portfolio-analyzer/. "
-        "Define PORTFOLIO_ANALYZER_PATH con la ruta absoluta."
+        "No se encontró el motor de cálculo. "
+        "Opciones: carpeta quant/ en el proyecto, "
+        "variable PORTFOLIO_ANALYZER_PATH, o carpeta portfolio-analyzer/ sibling."
     )
 
 
