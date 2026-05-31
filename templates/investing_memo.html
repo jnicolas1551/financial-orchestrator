@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8"/>
+<title>Investing Memo — {{ run_date }}</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Inter', Arial, sans-serif; font-size: 10pt;
+         color: #1a1a2e; background: #fff; }
+
+  /* Portada */
+  .cover { background: #0d1b2a; color: #fff; padding: 60px 50px; min-height: 200px; }
+  .cover h1 { font-size: 28pt; font-weight: 700; letter-spacing: -0.5px; }
+  .cover .subtitle { font-size: 13pt; color: #a8b8cc; margin-top: 10px; }
+  .cover .meta { margin-top: 30px; font-size: 9pt; color: #7a8fa6; }
+  .cover .meta span { margin-right: 30px; }
+
+  /* Sección */
+  .section { padding: 30px 40px; border-bottom: 1px solid #e8ecf0; }
+  .section-title {
+    font-size: 14pt; font-weight: 700; color: #0d1b2a;
+    padding-bottom: 10px; border-bottom: 3px solid #2563eb;
+    margin-bottom: 20px;
+  }
+  .section-num { color: #2563eb; margin-right: 8px; }
+
+  /* Tablas */
+  table { width: 100%; border-collapse: collapse; font-size: 9pt; }
+  th { background: #0d1b2a; color: #fff; padding: 8px 10px;
+       text-align: left; font-weight: 600; }
+  td { padding: 7px 10px; border-bottom: 1px solid #e8ecf0; }
+  tr:nth-child(even) td { background: #f5f7fa; }
+  tr:hover td { background: #ebf0fb; }
+
+  /* Badges de señal */
+  .badge { padding: 3px 8px; border-radius: 12px; font-size: 8pt;
+           font-weight: 600; display: inline-block; }
+  .badge-buy  { background: #d1fae5; color: #065f46; }
+  .badge-hold { background: #fef3c7; color: #92400e; }
+  .badge-sell { background: #fee2e2; color: #991b1b; }
+  .badge-pass { background: #dbeafe; color: #1e40af; }
+
+  /* Positivo / negativo */
+  .pos { color: #059669; font-weight: 600; }
+  .neg { color: #dc2626; font-weight: 600; }
+  .neu { color: #6b7280; }
+
+  /* Cards de activos */
+  .asset-card { background: #f8fafc; border: 1px solid #e2e8f0;
+                border-radius: 8px; padding: 20px; margin-bottom: 20px; }
+  .asset-card h3 { font-size: 12pt; font-weight: 700;
+                   color: #0d1b2a; margin-bottom: 12px; }
+  .asset-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .kv { display: flex; justify-content: space-between; padding: 4px 0;
+         border-bottom: 1px dotted #e2e8f0; font-size: 9pt; }
+  .kv .k { color: #64748b; }
+  .kv .v { font-weight: 600; }
+
+  /* Gráficas */
+  .chart-container { text-align: center; margin: 15px 0; }
+  .chart-container img { max-width: 100%; border: 1px solid #e2e8f0;
+                          border-radius: 4px; }
+  .chart-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+
+  /* Portafolios */
+  .portfolio-method { font-weight: 700; color: #2563eb; }
+  .portfolio-obj { color: #64748b; font-size: 8.5pt; }
+
+  /* Pipeline summary */
+  .pipeline { display: flex; gap: 0; margin: 15px 0; }
+  .pipe-step { flex: 1; text-align: center; padding: 12px 8px;
+               background: #f1f5f9; border-right: 2px solid #fff; }
+  .pipe-step:last-child { border-right: none; }
+  .pipe-step .num { font-size: 18pt; font-weight: 700; color: #2563eb; }
+  .pipe-step .lbl { font-size: 8pt; color: #64748b; margin-top: 4px; }
+
+  /* Footer */
+  .footer { text-align: center; padding: 20px; font-size: 8pt;
+             color: #9ca3af; border-top: 1px solid #e8ecf0; }
+
+  /* Separador de activo */
+  .asset-divider { margin: 25px 0; border: 0;
+                   border-top: 2px solid #e2e8f0; }
+
+  /* Page break para PDF */
+  .page-break { page-break-before: always; }
+</style>
+</head>
+<body>
+
+<!-- ============================================================ -->
+<!-- PORTADA                                                       -->
+<!-- ============================================================ -->
+<div class="cover">
+  <h1>📊 Investing Memo</h1>
+  <div class="subtitle">Análisis Institucional Top-Down</div>
+  <div class="meta">
+    <span>📅 {{ run_date }}</span>
+    <span>📈 {{ total_input }} tickers analizados</span>
+    <span>✅ {{ total_final }} seleccionados</span>
+    <span>🏦 {{ markets_label }}</span>
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- RESUMEN DEL PIPELINE                                          -->
+<!-- ============================================================ -->
+<div class="section">
+  <div class="section-title"><span class="section-num">0.</span> Resumen del Pipeline</div>
+
+  <div class="pipeline">
+    <div class="pipe-step">
+      <div class="num">{{ total_input }}</div>
+      <div class="lbl">Entrada</div>
+    </div>
+    <div class="pipe-step">
+      <div class="num">{{ total_downloaded }}</div>
+      <div class="lbl">Descargados</div>
+    </div>
+    <div class="pipe-step">
+      <div class="num">{{ total_f1 }}</div>
+      <div class="lbl">Filtro 1<br>(BUY estadístico)</div>
+    </div>
+    <div class="pipe-step">
+      <div class="num">{{ total_f2 }}</div>
+      <div class="lbl">Filtro 2<br>({{ filter2_mode }})</div>
+    </div>
+    <div class="pipe-step">
+      <div class="num">{{ total_final }}</div>
+      <div class="lbl">Portafolio</div>
+    </div>
+  </div>
+
+  <table>
+    <tr>
+      <th>Parámetro</th><th>Valor</th>
+    </tr>
+    <tr><td>Benchmark</td><td>{{ benchmark }}</td></tr>
+    <tr><td>Período análisis</td><td>{{ start_date }} → {{ run_date }}</td></tr>
+    <tr><td>Filtro 1 threshold</td><td>{{ filter1_threshold }}</td></tr>
+    <tr><td>Pesos F1 (reg / pct / tec)</td>
+        <td>{{ w_reg }} / {{ w_pct }} / {{ w_tec }}</td></tr>
+    <tr><td>Filtro 2 modo</td><td>{{ filter2_mode }}</td></tr>
+    <tr><td>Tasa libre de riesgo</td><td>{{ rf_label }}</td></tr>
+  </table>
+</div>
+
+<!-- ============================================================ -->
+<!-- SECCIÓN 1 — TABLA DE ACTIVOS                                  -->
+<!-- ============================================================ -->
+<div class="section page-break">
+  <div class="section-title"><span class="section-num">1.</span> Tabla de Activos Seleccionados</div>
+
+  <table>
+    <tr>
+      <th>Ticker</th>
+      <th>Mercado</th>
+      <th>Score F1</th>
+      <th>Señal F2</th>
+      <th>Precio Actual</th>
+      <th>Upside DCF</th>
+      <th>Upside Múlt.</th>
+      <th>WACC</th>
+    </tr>
+    {% for row in assets_table %}
+    <tr>
+      <td><strong>{{ row.ticker }}</strong></td>
+      <td>{{ row.market }}</td>
+      <td>{{ "%.3f"|format(row.score) }}</td>
+      <td>
+        <span class="badge badge-{{ row.signal }}">{{ row.signal | upper }}</span>
+      </td>
+      <td>{{ "%.2f"|format(row.current_price) if row.current_price else "N/A" }}</td>
+      <td class="{{ 'pos' if row.upside_dcf and row.upside_dcf > 0 else 'neg' }}">
+        {{ "{:+.1%}".format(row.upside_dcf) if row.upside_dcf is not none else "N/A" }}
+      </td>
+      <td class="{{ 'pos' if row.upside_mult and row.upside_mult > 0 else 'neg' }}">
+        {{ "{:+.1%}".format(row.upside_mult) if row.upside_mult is not none else "N/A" }}
+      </td>
+      <td>{{ "{:.1%}".format(row.wacc) if row.wacc else "N/A" }}</td>
+    </tr>
+    {% endfor %}
+  </table>
+</div>
+
+<!-- ============================================================ -->
+<!-- SECCIÓN 2 — ANÁLISIS TÉCNICO Y ESTADÍSTICO                    -->
+<!-- ============================================================ -->
+<div class="section page-break">
+  <div class="section-title"><span class="section-num">2.</span> Análisis Técnico y Estadístico</div>
+
+  <p style="font-size:9pt; color:#64748b; margin-bottom:12px;">
+    <strong>Alpha (α)</strong>: retorno independiente del mercado. &nbsp;
+    <strong>Beta (β)</strong>: sensibilidad al benchmark (β&gt;1 = más volátil). &nbsp;
+    <strong>R²</strong>: % movimiento explicado por el benchmark. &nbsp;
+    <strong>Señales</strong>: Compra / Venta / Neutro según cada indicador.
+  </p>
+
+  <table>
+    <tr>
+      <th>Ticker</th>
+      <th>Score</th>
+      <th>Alpha</th>
+      <th>Beta</th>
+      <th>R²</th>
+      <th>Correlación</th>
+      <th>Percentil</th>
+      <th>Med. Móviles</th>
+      <th>MACD</th>
+      <th>RSI</th>
+      <th>Fibonacci</th>
+    </tr>
+    {% for row in stat_table %}
+    <tr>
+      <td><strong>{{ row.ticker }}</strong></td>
+      <td>{{ "%.3f"|format(row.score) }}</td>
+      <td class="{{ 'pos' if row.alpha and row.alpha > 0 else 'neg' if row.alpha and row.alpha < 0 else '' }}">
+        {{ "%.4f"|format(row.alpha) if row.alpha is not none else "N/A" }}</td>
+      <td>{{ "%.3f"|format(row.beta) if row.beta is not none else "N/A" }}</td>
+      <td>{{ "%.3f"|format(row.r2) if row.r2 is not none else "N/A" }}</td>
+      <td>{{ "%.3f"|format(row.corr) if row.corr is not none else "N/A" }}</td>
+      <td>{{ "{:.1%}".format(row.pct_rank) if row.pct_rank is not none else "N/A" }}</td>
+      <td class="{{ 'pos' if row.signal_mm == 'Compra' else 'neg' if row.signal_mm == 'Venta' else 'neu' }}">
+        {{ row.signal_mm }}</td>
+      <td class="{{ 'pos' if row.signal_macd == 'Compra' else 'neg' if row.signal_macd == 'Venta' else 'neu' }}">
+        {{ row.signal_macd }}</td>
+      <td class="{{ 'pos' if row.signal_rsi == 'Compra' else 'neg' if row.signal_rsi == 'Venta' else 'neu' }}">
+        {{ row.signal_rsi }}</td>
+      <td class="{{ 'pos' if row.signal_fib == 'Compra' else 'neg' if row.signal_fib == 'Venta' else 'neu' }}">
+        {{ row.signal_fib }}</td>
+    </tr>
+    {% endfor %}
+  </table>
+</div>
+
+<!-- ============================================================ -->
+<!-- SECCIÓN 3 — DCF + MÚLTIPLOS POR ACTIVO                        -->
+<!-- ============================================================ -->
+<div class="section page-break">
+  <div class="section-title"><span class="section-num">3.</span> Valoración: DCF + Múltiplos de Pares</div>
+
+  {% for asset in asset_details %}
+  <div class="asset-card">
+    <h3>
+      {{ asset.ticker }}
+      <span class="badge badge-{{ asset.signal }}">{{ asset.signal | upper }}</span>
+      <span style="font-size:9pt; color:#64748b; font-weight:400; margin-left:10px;">
+        {{ asset.market }}
+      </span>
+    </h3>
+    <div class="asset-grid">
+      <div>
+        <div class="kv"><span class="k">Precio actual</span>
+          <span class="v">{{ "%.2f"|format(asset.current_price) if asset.current_price else "N/A" }}</span></div>
+        <div class="kv"><span class="k">Precio objetivo DCF</span>
+          <span class="v {{ 'pos' if asset.upside_dcf and asset.upside_dcf > 0 else 'neg' }}">
+            {{ "%.2f"|format(asset.dcf_price) if asset.dcf_price else "N/A" }}
+            ({{ "{:+.1%}".format(asset.upside_dcf) if asset.upside_dcf is not none else "" }})
+          </span></div>
+        <div class="kv"><span class="k">Precio objetivo Múltiplos</span>
+          <span class="v {{ 'pos' if asset.upside_mult and asset.upside_mult > 0 else 'neg' }}">
+            {{ "%.2f"|format(asset.mult_price) if asset.mult_price else "N/A" }}
+            ({{ "{:+.1%}".format(asset.upside_mult) if asset.upside_mult is not none else "" }})
+          </span></div>
+      </div>
+      <div>
+        <div class="kv"><span class="k">WACC</span>
+          <span class="v">{{ "{:.2%}".format(asset.wacc) if asset.wacc else "N/A" }}</span></div>
+        <div class="kv"><span class="k">Peers utilizados</span>
+          <span class="v">{{ asset.peers_count }}</span></div>
+        <div class="kv"><span class="k">Score estadístico</span>
+          <span class="v">{{ "%.3f"|format(asset.score) }}</span></div>
+      </div>
+    </div>
+  </div>
+  {% if not loop.last %}<hr class="asset-divider">{% endif %}
+  {% endfor %}
+</div>
+
+<!-- ============================================================ -->
+<!-- SECCIÓN 3 — CORRELACIÓN VS BENCHMARK                          -->
+<!-- ============================================================ -->
+<div class="section page-break">
+  <div class="section-title"><span class="section-num">4.</span> Correlación vs Benchmark ({{ benchmark }})</div>
+
+  {% if charts.correlation %}
+  <div class="chart-container">
+    <img src="data:image/png;base64,{{ charts.correlation }}" alt="Correlación vs Benchmark"/>
+  </div>
+  {% else %}
+  <p class="neu">Gráfica de correlación no disponible.</p>
+  {% endif %}
+</div>
+
+<!-- ============================================================ -->
+<!-- SECCIÓN 4 — 9 PORTAFOLIOS OPTIMIZADOS                         -->
+<!-- ============================================================ -->
+<div class="section page-break">
+  <div class="section-title"><span class="section-num">5.</span> Portafolios Optimizados (9 Configuraciones)</div>
+
+  <p style="font-size:9pt; color:#64748b; margin-bottom:15px;">
+    Tasa libre de riesgo usada: <strong>{{ rf_label }}</strong>
+  </p>
+
+  <table>
+    <tr>
+      <th>Método</th>
+      <th>Objetivo</th>
+      {% for tk in portfolio_tickers %}
+      <th>{{ tk }}</th>
+      {% endfor %}
+      <th>Retorno</th>
+      <th>Volatilidad</th>
+      <th>Sharpe</th>
+    </tr>
+    {% for prow in portfolio_rows %}
+    <tr>
+      <td class="portfolio-method">{{ prow.method }}</td>
+      <td class="portfolio-obj">{{ prow.objective }}</td>
+      {% for tk in portfolio_tickers %}
+      <td>{{ "{:.1%}".format(prow.weights.get(tk, 0)) }}</td>
+      {% endfor %}
+      <td class="{{ 'pos' if prow.retorno > 0 else 'neg' }}">
+        {{ "{:+.1%}".format(prow.retorno) }}</td>
+      <td>{{ "{:.1%}".format(prow.volatilidad) }}</td>
+      <td class="{{ 'pos' if prow.sharpe > 1 else '' }}">{{ "%.3f"|format(prow.sharpe) }}</td>
+    </tr>
+    {% endfor %}
+  </table>
+</div>
+
+<!-- ============================================================ -->
+<!-- SECCIÓN 6 — PORTAFOLIO UNIFICADO                              -->
+<!-- ============================================================ -->
+{% if combined_portfolio %}
+<div class="section page-break">
+  <div class="section-title">
+    <span class="section-num">6.</span>
+    Portafolio Unificado — {{ combined_portfolio.method_label }}
+  </div>
+
+  <div class="pipeline">
+    <div class="pipe-step">
+      <div class="num">{{ "{:+.1%}".format(combined_portfolio.retorno) }}</div>
+      <div class="lbl">Retorno Esperado Anual</div>
+    </div>
+    <div class="pipe-step">
+      <div class="num">{{ "{:.1%}".format(combined_portfolio.volatilidad) }}</div>
+      <div class="lbl">Volatilidad Anual</div>
+    </div>
+    <div class="pipe-step">
+      <div class="num">{{ "%.3f"|format(combined_portfolio.sharpe) }}</div>
+      <div class="lbl">Sharpe Ratio</div>
+    </div>
+  </div>
+
+  <p style="font-size:9pt; color:#64748b; margin: 12px 0 8px;">
+    Distribución de pesos — Portafolio optimizado unificado:
+  </p>
+  <table>
+    <tr>
+      <th>Ticker</th>
+      <th>Peso (%)</th>
+      <th>Peso decimal</th>
+    </tr>
+    {% for ticker, weight in combined_portfolio.pesos_sorted %}
+    <tr>
+      <td><strong>{{ ticker }}</strong></td>
+      <td class="{{ 'pos' if weight > 0.10 else '' }}">{{ "{:.2%}".format(weight) }}</td>
+      <td>{{ "%.4f"|format(weight) }}</td>
+    </tr>
+    {% endfor %}
+  </table>
+</div>
+{% endif %}
+
+<!-- ============================================================ -->
+<!-- SECCIÓN 7 — FRONTERA EFICIENTE                               -->
+<!-- ============================================================ -->
+<div class="section page-break">
+  <div class="section-title"><span class="section-num">7.</span> Frontera Eficiente</div>
+
+  {% if charts.frontier %}
+  <div class="chart-container">
+    <img src="data:image/png;base64,{{ charts.frontier }}" alt="Frontera Eficiente"/>
+  </div>
+  {% else %}
+  <p class="neu">Gráfica de frontera eficiente no disponible.</p>
+  {% endif %}
+</div>
+
+<!-- ============================================================ -->
+<!-- FOOTER                                                        -->
+<!-- ============================================================ -->
+<div class="footer">
+  Generado por Financial Orchestrator — {{ run_date }} —
+  Análisis para uso interno. No constituye asesoría de inversión.
+</div>
+
+</body>
+</html>

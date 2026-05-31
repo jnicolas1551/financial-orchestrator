@@ -1,0 +1,87 @@
+# Financial Orchestrator — 50 tickers S&P 500
+# Ejecutar: python main.py --config config.yml
+
+tickers:
+  # Tecnología (10)
+  - AAPL
+  - MSFT
+  - GOOGL
+  - NVDA
+  - META
+  - AMZN
+  - TSLA
+  - AVGO
+  - ORCL
+  - CRM
+  # Finanzas (8)
+  - JPM
+  - BAC
+  - WFC
+  - GS
+  - MS
+  - BLK
+  - SCHW
+  - AXP
+  # Salud (7)
+  - UNH
+  - JNJ
+  - LLY
+  - ABBV
+  - MRK
+  - TMO
+  - ABT
+  # Energía (5)
+  - XOM
+  - CVX
+  - COP
+  - SLB
+  - EOG
+  # Consumo básico (5)
+  - PG
+  - KO
+  - PEP
+  - COST
+  - WMT
+  # Consumo discrecional (5)
+  - HD
+  - MCD
+  - NKE
+  - LOW
+  - TGT
+  # Industriales (5)
+  - CAT
+  - RTX
+  - HON
+  - UPS
+  - GE
+  # Materiales (2)
+  - LIN
+  - NEM
+  # Utilidades (2)
+  - NEE
+  - SO
+  # Real Estate (1)
+  - PLD
+
+benchmark: "^GSPC"
+start_date: "2022-01-01"
+
+filter1:
+  threshold: 0.40       # ajusta entre 0.3-0.6 según cuántos quieres pasar
+  w_reg: 0.40
+  w_pct: 0.30
+  w_tec: 0.30
+
+filter2_mode: "buy_only"
+
+fundamental:
+  growth_explicit: 0.08
+  terminal_growth: 0.025
+  explicit_years: 5
+
+portfolio:
+  frontier_points: 100
+
+cache_dir: "cache/"
+cache_ttl_hours: 24
+output_dir: "output/"

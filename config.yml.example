@@ -1,0 +1,57 @@
+# ============================================================
+# Financial Orchestrator — Configuración de ejemplo
+# Copia este archivo a config.yml y ajusta los valores.
+# ============================================================
+
+# --- Universo de activos ---
+tickers:
+  # S&P 500
+  - AAPL
+  - MSFT
+  - GOOGL
+  - NVDA
+  - JPM
+  - KO
+  - JNJ
+  # BVC Colombia (sufijo .CL)
+  - PFBCOLOM.CL
+  - ECOPETL.CL
+
+benchmark: "^GSPC"           # ^GSPC para S&P 500 | COLCAP.CL para Colombia
+start_date: "2022-01-01"     # Inicio del histórico de precios
+
+# --- Filtro 1: Análisis estadístico (solo BUY) ---
+filter1:
+  threshold: 0.50            # Score mínimo para pasar (0-1)
+  w_reg: 0.40                # Peso regresión lineal
+  w_pct: 0.30                # Peso análisis de percentiles
+  w_tec: 0.30                # Peso señales técnicas (MM/MACD/RSI/Fibo)
+  # Los tres pesos deben sumar 1.0
+
+# --- Filtro 2: Análisis fundamental ---
+filter2_mode: "buy_only"     # "buy_only" = solo señal compra
+                              # "buy_hold" = compra + mantener
+
+# --- Tasa libre de riesgo ---
+# Si no se especifica, se descarga automáticamente de ^TNX (bono USA 10Y)
+# Descomentar para override manual:
+# rf: 0.0452
+
+# --- Parámetros DCF ---
+fundamental:
+  growth_explicit: 0.08      # Tasa de crecimiento explícito (5 años)
+  terminal_growth: 0.025     # Tasa de crecimiento terminal
+  explicit_years: 5          # Años de proyección explícita
+
+# --- Portafolio ---
+portfolio:
+  frontier_points: 100       # Puntos para la frontera eficiente
+
+# --- Cache ---
+cache_dir: "cache/"
+cache_ttl_hours: 24          # TTL para precios (1 día)
+fund_cache_ttl_hours: 168    # TTL para datos fundamentales (7 días)
+
+# --- Output ---
+output_dir: "output/"
+# pdf_filename: "mi_analisis.pdf"  # Nombre personalizado del PDF
