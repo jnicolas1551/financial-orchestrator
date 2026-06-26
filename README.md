@@ -28,6 +28,29 @@ python main.py --tickers AAPL MSFT PFBCOLOM.CL ECOPETL.CL --benchmark ^GSPC
 python main.py --tickers AAPL MSFT GOOGL NVDA --dry-run --verbose
 ```
 
+## App interactiva (Streamlit)
+
+Versión visual del pipeline, con controles para tickers, umbrales y gráficos.
+
+```bash
+# 1. Instalar dependencias (incluye streamlit)
+pip install -r requirements.txt
+
+# 2. Lanzar la app
+streamlit run streamlit_app.py
+```
+
+Se abre en el navegador (por defecto http://localhost:8501). Para usar otro puerto:
+
+```bash
+streamlit run streamlit_app.py --server.port 8502
+```
+
+> Nota: requiere las mismas variables de entorno de los módulos fuente (ver más abajo).
+> El PDF de la etapa 5 usa **WeasyPrint**, que **no** se instala por defecto (Streamlit Cloud
+> no soporta sus librerías nativas). Sin él, la app cae a un fallback `.html`/`.json` en `output/`.
+> Para generar PDF en local: `pip install weasyprint` (en Windows requiere GTK).
+
 ## Variables de entorno (módulos fuente)
 
 ```bash

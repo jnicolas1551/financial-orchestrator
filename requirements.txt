@@ -8,3 +8,7 @@ matplotlib>=3.8.0
 plotly>=5.18.0
 pyyaml>=6.0.0
 requests>=2.31.0
+streamlit>=1.30.0
+# NOTA: weasyprint NO se incluye a propósito — Streamlit Cloud no puede instalar sus
+# librerías nativas (GTK). El PDF de la etapa 5 cae a fallback .html/.json en output/.
+# Para generar PDF en local: pip install weasyprint (+ GTK en Windows).
