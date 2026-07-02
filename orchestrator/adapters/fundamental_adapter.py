@@ -73,6 +73,8 @@ def analyze_ticker(ticker: str, config_dict: dict) -> dict:
     """
     data_fetcher, dcf_model, multiples_model, country_data = _import_modules()
 
+    from . import financial_models
+
     result = {
         "ticker": ticker,
         "dcf_price": None,
@@ -83,6 +85,8 @@ def analyze_ticker(ticker: str, config_dict: dict) -> dict:
         "signal": "error",
         "wacc": None,
         "peers_count": 0,
+        "sector": None,
+        "valuation_model": None,
         "error": None,
     }
 
@@ -100,6 +104,28 @@ def analyze_ticker(ticker: str, config_dict: dict) -> dict:
 
         current_price = metrics.get("current_price") or metrics.get("price")
         result["current_price"] = current_price
+
+        # 1b. Detección de sector → ruta financieras a DDM + P/BV
+        #     (DCF-FCFF es engañoso en bancos: la deuda es el producto)
+        sec_info = financial_models.get_sector_info(ticker, metrics)
+        result["sector"] = sec_info.get("sector")
+
+        if financial_models.is_financial(sec_info.get("sector"), sec_info.get("industry")):
+            result["valuation_model"] = "DDM+P/BV"
+            fin_cfg = dict(config_dict)
+            fin_cfg["auto_peers"] = auto_peers
+            fin = financial_models.analyze_financial(ticker, fin_cfg)
+
+            result["current_price"] = fin["current_price"] or current_price
+            result["dcf_price"] = fin["dcf_price"]      # precio DDM (intrínseco)
+            result["mult_price"] = fin["mult_price"]    # precio P/BV (relativo)
+            result["wacc"] = fin["wacc"]                # Ke, no WACC
+            result["peers_count"] = fin["peers_count"]
+
+            _apply_signal(result)
+            return result
+
+        result["valuation_model"] = "DCF+Mult"
 
         # Parámetros DCF
         growth_explicit = config_dict.get("growth_explicit", 0.08)
@@ -135,34 +161,4 @@ def analyze_ticker(ticker: str, config_dict: dict) -> dict:
         })
 
         mult_result = multiples_model.run_multiples_analysis(metrics, peers, weights)
-        mult_price = mult_result.get("combined_price")
-        result["mult_price"] = mult_price
-
-        # 6. Señal: promedio de upsides DCF y múltiplos vs precio actual
-        if current_price and current_price > 0:
-            upsides = []
-            if dcf_price and dcf_price > 0:
-                result["upside_dcf"] = (dcf_price / current_price) - 1
-                upsides.append(result["upside_dcf"])
-            if mult_price and mult_price > 0:
-                result["upside_mult"] = (mult_price / current_price) - 1
-                upsides.append(result["upside_mult"])
-
-            if upsides:
-                avg_upside = sum(upsides) / len(upsides)
-                if avg_upside > 0.05:
-                    result["signal"] = "buy"
-                elif avg_upside >= -0.05:
-                    result["signal"] = "hold"
-                else:
-                    result["signal"] = "sell"
-            else:
-                result["signal"] = "hold"
-        else:
-            result["signal"] = "hold"
-
-    except Exception as e:
-        result["error"] = str(e)
-        result["signal"] = "error"
-
-    return result
+    

@@ -154,6 +154,8 @@ def _build_context(
             "upside_dcf":    fund_row.get("upside_dcf"),
             "upside_mult":   fund_row.get("upside_mult"),
             "wacc":          fund_row.get("wacc"),
+            "valuation_model": str(fund_row.get("valuation_model") or "DCF+Mult"),
+            "sector":        fund_row.get("sector"),
         })
 
     # Detalles por activo (Sección 2)
@@ -257,6 +259,10 @@ def _build_context(
         "w_tec":             config.w_tec,
         "filter2_mode":      config.filter2_mode,
         "rf_label":          rf_label,
+        "growth_explicit":   config.growth_explicit,
+        "terminal_growth":   config.terminal_growth,
+        "explicit_years":    config.explicit_years,
+        "has_financials":    any(a["valuation_model"] == "DDM+P/BV" for a in assets_table),
         "assets_table":       assets_table,
         "asset_details":      asset_details,
         "stat_table":         stat_table,
@@ -336,14 +342,3 @@ def build(
         # Guardar JSON de análisis como fallback de datos
         json_path = pdf_path.with_suffix(".json")
         safe_context = {k: v for k, v in context.items() if k != "charts"}
-        json_path.write_text(
-            json.dumps(safe_context, ensure_ascii=False, indent=2, default=str),
-            encoding="utf-8"
-        )
-        print(f"\n  ⚠️  WeasyPrint falló. Guardados fallbacks:")
-        print(f"      HTML: {html_path}")
-        print(f"      JSON: {json_path}")
-        return str(html_path)
-
-    print(f"{'='*60}\n")
-    return str(pdf_path)

@@ -34,15 +34,17 @@ FUND_RESULT_SCHEMA = {
     "description": "Resultados del Filtro 2 fundamental",
     "index": "str (ticker)",
     "required_columns": [
-        "dcf_price",      # float: precio objetivo DCF
-        "mult_price",     # float: precio objetivo por múltiplos
+        "dcf_price",      # float: precio intrínseco (DCF; DDM si financiera)
+        "mult_price",     # float: precio relativo (múltiplos; P/BV si financiera)
         "current_price",  # float: precio actual de mercado
         "upside_dcf",     # float: (dcf_price/current_price) - 1
         "upside_mult",    # float: (mult_price/current_price) - 1
         "signal",         # str:   "buy" | "hold" | "sell"
-        "wacc",           # float: WACC calculado
+        "wacc",           # float: WACC (Ke si financiera)
         "peers_count",    # int:   número de peers usados
         "passes_filter2", # bool:  True si pasa el filtro configurado
+        "sector",         # str:   sector yfinance (detección financieras)
+        "valuation_model",# str:   "DCF+Mult" | "DDM+P/BV"
     ],
 }
 

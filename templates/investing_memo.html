@@ -159,10 +159,11 @@
       <th>Mercado</th>
       <th>Score F1</th>
       <th>Señal F2</th>
+      <th>Modelo</th>
       <th>Precio Actual</th>
-      <th>Upside DCF</th>
-      <th>Upside Múlt.</th>
-      <th>WACC</th>
+      <th>Upside Intrínseco</th>
+      <th>Upside Relativo</th>
+      <th>WACC/Ke</th>
     </tr>
     {% for row in assets_table %}
     <tr>
@@ -172,6 +173,7 @@
       <td>
         <span class="badge badge-{{ row.signal }}">{{ row.signal | upper }}</span>
       </td>
+      <td>{{ row.valuation_model }}</td>
       <td>{{ "%.2f"|format(row.current_price) if row.current_price else "N/A" }}</td>
       <td class="{{ 'pos' if row.upside_dcf and row.upside_dcf > 0 else 'neg' }}">
         {{ "{:+.1%}".format(row.upside_dcf) if row.upside_dcf is not none else "N/A" }}
@@ -239,34 +241,36 @@
 <!-- SECCIÓN 3 — DCF + MÚLTIPLOS POR ACTIVO                        -->
 <!-- ============================================================ -->
 <div class="section page-break">
-  <div class="section-title"><span class="section-num">3.</span> Valoración: DCF + Múltiplos de Pares</div>
+  <div class="section-title"><span class="section-num">3.</span> Valoración Fundamental</div>
 
   {% for asset in asset_details %}
+  {% set is_fin = asset.valuation_model == "DDM+P/BV" %}
   <div class="asset-card">
     <h3>
       {{ asset.ticker }}
       <span class="badge badge-{{ asset.signal }}">{{ asset.signal | upper }}</span>
       <span style="font-size:9pt; color:#64748b; font-weight:400; margin-left:10px;">
-        {{ asset.market }}
+        {{ asset.market }}{% if asset.sector %} · {{ asset.sector }}{% endif %}
+        · Modelo: <strong>{{ asset.valuation_model }}</strong>
       </span>
     </h3>
     <div class="asset-grid">
       <div>
         <div class="kv"><span class="k">Precio actual</span>
           <span class="v">{{ "%.2f"|format(asset.current_price) if asset.current_price else "N/A" }}</span></div>
-        <div class="kv"><span class="k">Precio objetivo DCF</span>
+        <div class="kv"><span class="k">{{ "Precio objetivo DDM (Gordon)" if is_fin else "Precio objetivo DCF" }}</span>
           <span class="v {{ 'pos' if asset.upside_dcf and asset.upside_dcf > 0 else 'neg' }}">
             {{ "%.2f"|format(asset.dcf_price) if asset.dcf_price else "N/A" }}
             ({{ "{:+.1%}".format(asset.upside_dcf) if asset.upside_dcf is not none else "" }})
           </span></div>
-        <div class="kv"><span class="k">Precio objetivo Múltiplos</span>
+        <div class="kv"><span class="k">{{ "Precio objetivo P/BV aj. ROE" if is_fin else "Precio objetivo Múltiplos" }}</span>
           <span class="v {{ 'pos' if asset.upside_mult and asset.upside_mult > 0 else 'neg' }}">
             {{ "%.2f"|format(asset.mult_price) if asset.mult_price else "N/A" }}
             ({{ "{:+.1%}".format(asset.upside_mult) if asset.upside_mult is not none else "" }})
           </span></div>
       </div>
       <div>
-        <div class="kv"><span class="k">WACC</span>
+        <div class="kv"><span class="k">{{ "Ke (CAPM)" if is_fin else "WACC" }}</span>
           <span class="v">{{ "{:.2%}".format(asset.wacc) if asset.wacc else "N/A" }}</span></div>
         <div class="kv"><span class="k">Peers utilizados</span>
           <span class="v">{{ asset.peers_count }}</span></div>
@@ -277,6 +281,24 @@
   </div>
   {% if not loop.last %}<hr class="asset-divider">{% endif %}
   {% endfor %}
+
+  <!-- Consideraciones metodológicas -->
+  <div style="margin-top:18px; padding:12px 14px; background:#f8fafc; border-left:3px solid #64748b;
+              font-size:8.5pt; color:#475569; line-height:1.5;">
+    <strong>Consideraciones metodológicas.</strong>
+    <em>Empresas no financieras (DCF+Mult):</em> flujo de caja libre a la firma descontado al WACC
+    (crecimiento explícito {{ "{:.1%}".format(growth_explicit) }} por {{ explicit_years }} años,
+    terminal {{ "{:.1%}".format(terminal_growth) }}), complementado con múltiplos de pares
+    (EV/EBITDA, P/E, margen EBITDA).
+    {% if has_financials %}
+    <br><em>Financieras (DDM+P/BV):</em> el DCF-FCFF no aplica a bancos y aseguradoras — la deuda
+    es parte del negocio, no financiamiento — por lo que se usa el Modelo de Descuento de Dividendos
+    de Gordon (V = D₁/(Ke−g), con Ke = rf + β·ERP y g sostenible = ROE×(1−payout), capado bajo Ke)
+    como valor intrínseco, y P/BV mediano de pares ajustado por ROE relativo como valor relativo.
+    La tasa de descuento reportada es Ke (costo del equity), no WACC. Sensible a los supuestos de
+    ERP y crecimiento de dividendos: interpretar el upside con rango, no como cifra puntual.
+    {% endif %}
+  </div>
 </div>
 
 <!-- ============================================================ -->
@@ -351,53 +373,4 @@
       <div class="lbl">Volatilidad Anual</div>
     </div>
     <div class="pipe-step">
-      <div class="num">{{ "%.3f"|format(combined_portfolio.sharpe) }}</div>
-      <div class="lbl">Sharpe Ratio</div>
-    </div>
-  </div>
-
-  <p style="font-size:9pt; color:#64748b; margin: 12px 0 8px;">
-    Distribución de pesos — Portafolio optimizado unificado:
-  </p>
-  <table>
-    <tr>
-      <th>Ticker</th>
-      <th>Peso (%)</th>
-      <th>Peso decimal</th>
-    </tr>
-    {% for ticker, weight in combined_portfolio.pesos_sorted %}
-    <tr>
-      <td><strong>{{ ticker }}</strong></td>
-      <td class="{{ 'pos' if weight > 0.10 else '' }}">{{ "{:.2%}".format(weight) }}</td>
-      <td>{{ "%.4f"|format(weight) }}</td>
-    </tr>
-    {% endfor %}
-  </table>
-</div>
-{% endif %}
-
-<!-- ============================================================ -->
-<!-- SECCIÓN 7 — FRONTERA EFICIENTE                               -->
-<!-- ============================================================ -->
-<div class="section page-break">
-  <div class="section-title"><span class="section-num">7.</span> Frontera Eficiente</div>
-
-  {% if charts.frontier %}
-  <div class="chart-container">
-    <img src="data:image/png;base64,{{ charts.frontier }}" alt="Frontera Eficiente"/>
-  </div>
-  {% else %}
-  <p class="neu">Gráfica de frontera eficiente no disponible.</p>
-  {% endif %}
-</div>
-
-<!-- ============================================================ -->
-<!-- FOOTER                                                        -->
-<!-- ============================================================ -->
-<div class="footer">
-  Generado por Financial Orchestrator — {{ run_date }} —
-  Análisis para uso interno. No constituye asesoría de inversión.
-</div>
-
-</body>
-</html>
+      <div class="num">{{ "%.3f"|format(com

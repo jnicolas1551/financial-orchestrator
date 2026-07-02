@@ -136,6 +136,14 @@ def run(
         frontier_points=config.frontier_points,
     )
 
+    # 3b. Anexar rendimientos del benchmark a df_rend — los necesita el
+    #     Information Ratio del portafolio unificado. Se agrega DESPUÉS de
+    #     la optimización para no contaminar covarianzas ni pesos (la
+    #     optimización usa solo los activos confirmados).
+    bench = config.benchmark
+    if bench and bench in df_prices.columns and bench not in df_rend.columns:
+        df_rend[bench] = df_prices[bench].pct_change().reindex(df_rend.index)
+
     # 4. Resumen de resultados
     print(f"\n  Portafolios generados ({len(df_opt)} de 9):")
     if not df_opt.empty:
@@ -143,16 +151,4 @@ def run(
             row = df_opt.loc[idx]
             method, obj = idx if isinstance(idx, tuple) else (str(idx), "")
             converged = row.get("Convergido", True)
-            sharpe = row.get("Sharpe", 0)
-            ret = row.get("Retorno", 0)
-            vol = row.get("Volatilidad", 0)
-            status = "✅" if converged else "⚠️"
-            print(
-                f"    {status} {method:12s} × {obj:18s} | "
-                f"Sharpe={sharpe:.3f}  Ret={ret:.1%}  Vol={vol:.1%}"
-            )
-
-    print(f"\n  Frontera eficiente: {len(df_frontier)} puntos")
-    print(f"{'='*60}\n")
-
-    return df_opt, df_frontier, rf, df_rend
+            

@@ -27,37 +27,99 @@ st.set_page_config(
 
 st.markdown("""
 <style>
-  .stApp { background-color: #0E1117; }
-  .block-container { padding-top: 1.5rem; }
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
 
+  html, body, .stApp, [class*="css"] { font-family: 'Inter', sans-serif; }
+  .stApp {
+    background: radial-gradient(1200px 600px at 15% -10%, #16213E 0%, #0B0F19 55%) fixed;
+  }
+  .block-container { padding-top: 1.2rem; max-width: 1400px; }
+
+  h1, h2, h3 { letter-spacing: -0.02em; }
+
+  /* KPI cards */
   .metric-card {
-    background: #1E2130; border: 1px solid #2D3147;
-    border-radius: 10px; padding: 14px 18px;
+    background: linear-gradient(160deg, #171C2E 0%, #12172494 100%);
+    border: 1px solid #262D45;
+    border-radius: 14px; padding: 16px 18px;
     text-align: center; margin-bottom: 8px;
+    transition: transform .15s ease, border-color .15s ease, box-shadow .15s ease;
   }
-  .metric-value { font-size: 1.7rem; font-weight: 700; color: #FAFAFA; }
-  .metric-label { font-size: 0.75rem; color: #8B92A5;
-                  text-transform: uppercase; letter-spacing: 0.06em; margin-top: 4px; }
-  .metric-delta { font-size: 0.85rem; font-weight: 600; margin-top: 3px; }
+  .metric-card:hover {
+    transform: translateY(-2px);
+    border-color: #4C8BF5;
+    box-shadow: 0 8px 24px rgba(76,139,245,0.12);
+  }
+  .metric-value { font-size: 1.65rem; font-weight: 800; color: #F5F7FF;
+                  font-variant-numeric: tabular-nums; }
+  .metric-label { font-size: 0.70rem; color: #7C87A8;
+                  text-transform: uppercase; letter-spacing: 0.10em; margin-top: 5px;
+                  font-weight: 600; }
+  .metric-delta { font-size: 0.82rem; font-weight: 600; margin-top: 4px; }
 
-  .positive { color: #00C853; }
-  .negative { color: #FF1744; }
-  .neutral  { color: #FFD600; }
+  .positive { color: #34D399; }
+  .negative { color: #F87171; }
+  .neutral  { color: #FBBF24; }
 
+  /* Encabezados de etapa */
   .stage-header {
-    background: linear-gradient(135deg,#1E2130,#2D3147);
-    border-left: 4px solid #4C8BF5;
-    border-radius: 0 8px 8px 0;
-    padding: 10px 18px; margin: 18px 0 10px 0;
-    font-size: 1rem; font-weight: 600; color: #FAFAFA;
+    background: linear-gradient(90deg, rgba(76,139,245,0.16) 0%, rgba(76,139,245,0.03) 65%, transparent 100%);
+    border-left: 3px solid #4C8BF5;
+    border-radius: 0 10px 10px 0;
+    padding: 12px 20px; margin: 22px 0 12px 0;
+    font-size: 1.02rem; font-weight: 700; color: #F5F7FF;
+    letter-spacing: -0.01em;
   }
+
+  /* Cajas informativas */
   .info-box {
-    background: #1a2744; border: 1px solid #2563eb;
-    border-radius: 8px; padding: 12px 16px;
-    font-size: 0.88rem; color: #93c5fd; margin-bottom: 12px;
+    background: rgba(37,99,235,0.08);
+    border: 1px solid rgba(37,99,235,0.35);
+    border-radius: 10px; padding: 13px 17px;
+    font-size: 0.87rem; color: #A9C4F5; margin-bottom: 12px;
+    line-height: 1.55;
   }
-  div[data-testid="stSidebarContent"] { background: #1E2130; }
-  .stButton>button[kind="primary"] { background:#4C8BF5; border:none; font-weight:600; }
+  .info-box b { color: #D6E3FB; }
+
+  /* Sidebar */
+  div[data-testid="stSidebarContent"] {
+    background: linear-gradient(180deg, #131A2C 0%, #0E1322 100%);
+    border-right: 1px solid #1E2740;
+  }
+  div[data-testid="stSidebarContent"] hr { border-color: #1E2740; }
+
+  /* Botones */
+  .stButton>button[kind="primary"] {
+    background: linear-gradient(135deg, #4C8BF5, #2563EB);
+    border: none; font-weight: 700; border-radius: 10px;
+    transition: filter .15s ease, transform .1s ease;
+  }
+  .stButton>button[kind="primary"]:hover { filter: brightness(1.12); transform: translateY(-1px); }
+  .stButton>button { border-radius: 10px; }
+
+  /* Tabs */
+  .stTabs [data-baseweb="tab-list"] {
+    gap: 4px; background: #12172410; border-bottom: 1px solid #1E2740;
+  }
+  .stTabs [data-baseweb="tab"] {
+    border-radius: 8px 8px 0 0; padding: 8px 18px; font-weight: 600;
+  }
+  .stTabs [aria-selected="true"] {
+    background: rgba(76,139,245,0.12);
+    border-bottom: 2px solid #4C8BF5;
+  }
+
+  /* Dataframes y gráficas: esquinas suaves */
+  div[data-testid="stDataFrame"] {
+    border: 1px solid #262D45; border-radius: 12px; overflow: hidden;
+  }
+  div[data-testid="stPlotlyChart"] {
+    border: 1px solid #1E2740; border-radius: 14px;
+    padding: 4px; background: #12172440;
+  }
+
+  /* Expanders / alerts */
+  div[data-testid="stExpander"] { border: 1px solid #262D45; border-radius: 12px; }
 </style>
 """, unsafe_allow_html=True)
 
@@ -74,6 +136,7 @@ DEFAULTS = {
     "combined_portfolio": None,
     "portfolios_calculated": False,
     "output_path": None, "config": None,
+    "names": {},
 }
 for k, v in DEFAULTS.items():
     if k not in st.session_state:
@@ -89,9 +152,16 @@ def reset():
 # Constantes visuales
 # ─────────────────────────────────────────────────────────────────────────────
 DARK = dict(
-    template="plotly_dark", paper_bgcolor="#0E1117", plot_bgcolor="#1E2130",
-    font=dict(family="Inter,Arial", color="#FAFAFA"),
-    margin=dict(t=48, b=36, l=36, r=16),
+    template="plotly_dark",
+    paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(18,23,36,0.5)",
+    font=dict(family="Inter,Arial", color="#E7EBF5", size=12),
+    title_font=dict(size=15, color="#F5F7FF"),
+    margin=dict(t=52, b=38, l=38, r=18),
+    xaxis=dict(gridcolor="#1E2740", zerolinecolor="#262D45"),
+    yaxis=dict(gridcolor="#1E2740", zerolinecolor="#262D45"),
+    hoverlabel=dict(bgcolor="#171C2E", bordercolor="#4C8BF5",
+                    font=dict(family="Inter,Arial", color="#F5F7FF")),
+    legend=dict(bgcolor="rgba(0,0,0,0)"),
 )
 COLORS = ["#4C8BF5","#00C853","#FFD600","#FF6D00","#E040FB",
           "#00BCD4","#FF5252","#69F0AE","#FFAB40","#40C4FF"]
@@ -117,6 +187,26 @@ def money(v, decimals=2):
     if v is None or (isinstance(v, float) and pd.isna(v)):
         return "N/A"
     return f"${float(v):.{decimals}f}"
+
+
+@st.cache_data(ttl=7 * 24 * 3600, show_spinner=False)
+def get_company_names(tickers: tuple) -> dict:
+    """Nombre corto de cada compañía vía yfinance. Cache 7 días."""
+    import yfinance as yf
+    names = {}
+    for t in tickers:
+        try:
+            info = yf.Ticker(t).info or {}
+            names[t] = info.get("shortName") or info.get("longName") or t
+        except Exception:
+            names[t] = t
+    return names
+
+
+def disp(ticker: str) -> str:
+    """'Apple Inc. (AAPL)' si el nombre está disponible; si no, el ticker."""
+    name = (st.session_state.get("names") or {}).get(ticker)
+    return f"{name} ({ticker})" if name and name != ticker else ticker
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -221,7 +311,7 @@ def fig_scores(df_stat: pd.DataFrame, threshold: float) -> go.Figure:
     df = df_stat[df_stat["score"].notna()].sort_values("score", ascending=True)
     colors = ["#00C853" if p else "#FF1744" for p in df["passes_filter1"]]
     fig = go.Figure(go.Bar(
-        x=df["score"], y=df.index, orientation="h",
+        x=df["score"], y=[disp(t) for t in df.index], orientation="h",
         marker_color=colors,
         text=[f"{v:.3f}" for v in df["score"]], textposition="outside",
     ))
@@ -251,7 +341,7 @@ def fig_technical_indicators(df_stat: pd.DataFrame) -> go.Figure:
         z.append(row_z); text_vals.append(row_t)
 
     fig = go.Figure(go.Heatmap(
-        z=z, x=labels, y=list(df.index),
+        z=z, x=labels, y=[disp(t) for t in df.index],
         text=text_vals, texttemplate="%{text}",
         colorscale=[[0,"#7f1d1d"],[0.5,"#1E2130"],[1,"#064e3b"]],
         zmin=-1, zmax=1, showscale=False,
@@ -268,11 +358,14 @@ def fig_regression_stats(df_stat: pd.DataFrame) -> go.Figure:
     df = df_stat[df_stat["beta"].notna() & df_stat["corr"].notna()].copy()
     if df.empty:
         return None
+    dfr = df.reset_index()
+    dfr["compania"] = dfr["ticker"].map(disp)
     fig = px.scatter(
-        df.reset_index(), x="beta", y="corr",
+        dfr, x="beta", y="corr",
         size=df["r2"].fillna(0).abs() * 100 + 5,
         color="score", color_continuous_scale="RdYlGn",
-        text="ticker", hover_data=["alpha","beta","r2","corr","pct_rank"],
+        text="ticker", hover_name="compania",
+        hover_data=["alpha","beta","r2","corr","pct_rank"],
         title="Beta vs Correlación con Benchmark (tamaño = R²)",
         labels={"beta":"Beta","corr":"Correlación","score":"Score"},
         range_color=[0, 1],
@@ -296,19 +389,20 @@ def fig_dcf_comparison(df_fund: pd.DataFrame) -> go.Figure:
     dcf     = [float(df.loc[t, "dcf_price"]     or 0) for t in tickers]
     mult    = [float(df.loc[t, "mult_price"]     or 0) for t in tickers]
 
+    x_labels = [disp(t) for t in tickers]
     fig = go.Figure()
-    fig.add_trace(go.Bar(name="Precio Actual", x=tickers, y=current,
+    fig.add_trace(go.Bar(name="Precio Actual", x=x_labels, y=current,
                          marker_color="#8B92A5"))
-    fig.add_trace(go.Bar(name="Objetivo DCF", x=tickers, y=dcf,
+    fig.add_trace(go.Bar(name="Obj. Intrínseco (DCF/DDM)", x=x_labels, y=dcf,
                          marker_color="#4C8BF5",
                          text=[pct(df.loc[t,"upside_dcf"]) for t in tickers],
                          textposition="outside"))
-    fig.add_trace(go.Bar(name="Objetivo Múltiplos", x=tickers, y=mult,
+    fig.add_trace(go.Bar(name="Obj. Relativo (Múlt./P-BV)", x=x_labels, y=mult,
                          marker_color="#00C853",
                          text=[pct(df.loc[t,"upside_mult"]) for t in tickers],
                          textposition="outside"))
     fig.update_layout(barmode="group",
-                      title="Precio Actual vs Objetivo DCF vs Objetivo Múltiplos de Pares",
+                      title="Precio Actual vs Objetivos de Valoración",
                       yaxis_title="Precio (USD/COP)",
                       height=440, **DARK)
     return fig
@@ -382,7 +476,7 @@ def fig_pie_weights(weights: dict, title: str) -> go.Figure:
     tickers = [k for k, v in weights.items() if float(v or 0) > 0.001]
     values  = [float(weights[t] or 0)*100 for t in tickers]
     fig = go.Figure(go.Pie(
-        labels=tickers, values=values,
+        labels=[disp(t) for t in tickers], values=values,
         marker_colors=COLORS[:len(tickers)],
         textinfo="label+percent",
         hovertemplate="%{label}: %{value:.1f}%<extra></extra>",
@@ -396,11 +490,18 @@ def fig_pie_weights(weights: dict, title: str) -> go.Figure:
 # ─────────────────────────────────────────────────────────────────────────────
 def render_welcome():
     st.markdown("""
-    <div style="text-align:center;padding:50px 20px">
+    <div style="text-align:center;padding:56px 20px 40px">
       <div style="font-size:3rem">📊</div>
-      <h1 style="font-size:2rem;color:#FAFAFA;margin:10px 0 6px">Financial Orchestrator</h1>
-      <p style="color:#8B92A5;max-width:580px;margin:0 auto 28px">
+      <h1 style="font-size:2.3rem;margin:12px 0 8px;font-weight:800;
+                 background:linear-gradient(90deg,#F5F7FF 30%,#4C8BF5 100%);
+                 -webkit-background-clip:text;-webkit-text-fill-color:transparent;">
+        Financial Orchestrator</h1>
+      <p style="color:#7C87A8;max-width:600px;margin:0 auto 6px;font-size:1.02rem">
         Pipeline institucional top-down · S&P 500 y BVC Colombia
+      </p>
+      <p style="color:#4C8BF5;font-size:0.82rem;letter-spacing:0.08em;
+                text-transform:uppercase;font-weight:600">
+        Descarga → Filtro estadístico → Valoración → Optimización → Memo PDF
       </p>
     </div>""", unsafe_allow_html=True)
 
@@ -473,6 +574,11 @@ def run_pipeline(params: dict):
     st.session_state.df_prices = df_prices
     st.session_state.skipped   = skipped
 
+    # Nombres de compañías (cache 7 días — no repite llamadas entre corridas)
+    with st.spinner("Obteniendo nombres de compañías..."):
+        inv = tuple(sorted(t for t in df_prices.columns if t != params["benchmark"]))
+        st.session_state.names = get_company_names(inv)
+
     c1,c2,c3 = st.columns(3)
     kpi(c1,"Descargados", str(len(df_prices.columns)))
     kpi(c2,"Fallidos", str(len(skipped)),
@@ -522,17 +628,27 @@ def run_pipeline(params: dict):
 
 
 def _render_score_table(df_stat: pd.DataFrame):
-    """Tabla detallada de scores."""
+    """Tabla de scores — columnas numéricas reales (ordenables) + barra de progreso."""
     cols_show = [c for c in ["score","pot_reg","pot_pct","passes_filter1"] if c in df_stat.columns]
     df_show = df_stat[cols_show].copy()
-    df_show["score"]    = df_show["score"].apply(lambda x: f"{x:.3f}" if pd.notna(x) else "N/A")
-    df_show["pot_reg"]  = df_show["pot_reg"].apply(lambda x: pct(x) if pd.notna(x) else "N/A")
-    df_show["pot_pct"]  = df_show["pot_pct"].apply(lambda x: pct(x) if pd.notna(x) else "N/A")
-    df_show["BUY"] = df_show["passes_filter1"].apply(lambda x: "✅" if x else "❌")
-    df_show = df_show.drop(columns=["passes_filter1"]).rename(columns={
-        "score":"Score","pot_reg":"Potencial Reg.","pot_pct":"Potencial Pct."})
-    st.dataframe(df_show.sort_values("Score", ascending=False),
-                 use_container_width=True)
+    df_show.insert(0, "compania", [disp(t) for t in df_show.index])
+    for c in ["pot_reg", "pot_pct"]:
+        if c in df_show.columns:
+            df_show[c] = pd.to_numeric(df_show[c], errors="coerce") * 100
+    df_show["passes_filter1"] = df_show["passes_filter1"].map(
+        lambda x: "✅ BUY" if x else "❌ NO")
+    df_show = df_show.sort_values("score", ascending=False)
+    st.dataframe(
+        df_show, use_container_width=True, hide_index=True,
+        column_config={
+            "compania": st.column_config.TextColumn("Compañía", width="medium"),
+            "score": st.column_config.ProgressColumn(
+                "Score", min_value=0.0, max_value=1.0, format="%.3f"),
+            "pot_reg": st.column_config.NumberColumn("Potencial Reg.", format="%+.1f%%"),
+            "pot_pct": st.column_config.NumberColumn("Potencial Pct.", format="%+.1f%%"),
+            "passes_filter1": st.column_config.TextColumn("Filtro 1", width="small"),
+        },
+    )
 
 
 def _render_technical_table(df_stat: pd.DataFrame, params: dict):
@@ -550,21 +666,30 @@ def _render_technical_table(df_stat: pd.DataFrame, params: dict):
     sig_cols = [c for c in ["signal_mm","signal_macd","signal_rsi","signal_fib"] if c in df_stat.columns]
     num_cols = [c for c in ["rsi_value","macd_hist","score"] if c in df_stat.columns]
     df_show = df_stat[sig_cols + num_cols].copy()
+    df_show.insert(0, "compania", [disp(t) for t in df_show.index])
 
     for c in sig_cols:
         df_show[c] = df_show[c].apply(_shorten_signal)
-    if "rsi_value" in df_show.columns:
-        df_show["rsi_value"] = df_show["rsi_value"].apply(
-            lambda x: f"{x:.1f}" if pd.notna(x) else "N/A")
-    if "macd_hist" in df_show.columns:
-        df_show["macd_hist"] = df_show["macd_hist"].apply(
-            lambda x: f"{float(x):+.4f}" if pd.notna(x) else "N/A")
+    for c in ["rsi_value", "macd_hist", "score"]:
+        if c in df_show.columns:
+            df_show[c] = pd.to_numeric(df_show[c], errors="coerce")
 
-    df_show = df_show.rename(columns={
-        "signal_mm":"MM","signal_macd":"MACD","signal_rsi":"RSI","signal_fib":"Fibonacci",
-        "rsi_value":"RSI Valor","macd_hist":"MACD Hist","score":"Score"})
-    st.dataframe(df_show.sort_values("Score", ascending=False) if "Score" in df_show.columns else df_show,
-                 use_container_width=True)
+    if "score" in df_show.columns:
+        df_show = df_show.sort_values("score", ascending=False)
+    st.dataframe(
+        df_show, use_container_width=True, hide_index=True,
+        column_config={
+            "compania": st.column_config.TextColumn("Compañía", width="medium"),
+            "signal_mm": st.column_config.TextColumn("MM", width="small"),
+            "signal_macd": st.column_config.TextColumn("MACD", width="small"),
+            "signal_rsi": st.column_config.TextColumn("RSI", width="small"),
+            "signal_fib": st.column_config.TextColumn("Fibonacci", width="small"),
+            "rsi_value": st.column_config.NumberColumn("RSI Valor", format="%.1f"),
+            "macd_hist": st.column_config.NumberColumn("MACD Hist", format="%+.4f"),
+            "score": st.column_config.ProgressColumn(
+                "Score", min_value=0.0, max_value=1.0, format="%.3f"),
+        },
+    )
 
     if not df_stat.empty and all(c in df_stat.columns for c in sig_cols):
         st.plotly_chart(fig_technical_indicators(df_stat), use_container_width=True)
@@ -590,20 +715,28 @@ def _render_regression_table(df_stat: pd.DataFrame):
 
     reg_cols = [c for c in ["alpha","beta","r2","corr","pct_rank","std_20","score"] if c in df_stat.columns]
     df_show = df_stat[reg_cols].copy()
-    for c in ["alpha","beta","r2","corr","std_20"]:
-        if c in df_show.columns:
-            df_show[c] = df_show[c].apply(lambda x: f"{float(x):.4f}" if pd.notna(x) else "N/A")
+    df_show.insert(0, "compania", [disp(t) for t in df_show.index])
+    for c in reg_cols:
+        df_show[c] = pd.to_numeric(df_show[c], errors="coerce")
     if "pct_rank" in df_show.columns:
-        df_show["pct_rank"] = df_show["pct_rank"].apply(
-            lambda x: f"{float(x)*100:.1f}%" if pd.notna(x) else "N/A")
-    if "score" in df_show.columns:
-        df_show["score"] = df_show["score"].apply(lambda x: f"{float(x):.3f}" if pd.notna(x) else "N/A")
+        df_show["pct_rank"] = df_show["pct_rank"] * 100
 
-    df_show = df_show.rename(columns={
-        "alpha":"Alpha","beta":"Beta","r2":"R²","corr":"Correlación",
-        "pct_rank":"Percentil Actual","std_20":"Std 20d","score":"Score"})
-    st.dataframe(df_show.sort_values("Score", ascending=False) if "Score" in df_show.columns else df_show,
-                 use_container_width=True)
+    if "score" in df_show.columns:
+        df_show = df_show.sort_values("score", ascending=False)
+    st.dataframe(
+        df_show, use_container_width=True, hide_index=True,
+        column_config={
+            "compania": st.column_config.TextColumn("Compañía", width="medium"),
+            "alpha": st.column_config.NumberColumn("Alpha", format="%+.4f"),
+            "beta": st.column_config.NumberColumn("Beta", format="%.3f"),
+            "r2": st.column_config.NumberColumn("R²", format="%.3f"),
+            "corr": st.column_config.NumberColumn("Correlación", format="%.3f"),
+            "pct_rank": st.column_config.NumberColumn("Percentil Actual", format="%.1f%%"),
+            "std_20": st.column_config.NumberColumn("Std 20d", format="%.4f"),
+            "score": st.column_config.ProgressColumn(
+                "Score", min_value=0.0, max_value=1.0, format="%.3f"),
+        },
+    )
 
     fig = fig_regression_stats(df_stat)
     if fig:
@@ -634,6 +767,7 @@ def render_f1_edit():
     edited = st.multiselect(
         f"Filtro 1 seleccionó {len(buy)} tickers. Agrega o elimina según tu criterio:",
         options=sorted(set(all_tickers)), default=sorted(set(buy)),
+        format_func=disp,
     )
     st.session_state.buy_list_edited = edited
     if not edited:
@@ -696,29 +830,43 @@ def run_fundamental():
 
 
 def _render_fund_table(df_fund: pd.DataFrame):
-    cols = [c for c in ["signal","current_price","dcf_price","mult_price",
+    cols = [c for c in ["signal","valuation_model","sector","current_price","dcf_price","mult_price",
                          "upside_dcf","upside_mult","wacc","peers_count"] if c in df_fund.columns]
     df_show = df_fund[cols].copy()
+    df_show.insert(0, "compania", [disp(t) for t in df_show.index])
 
-    for col in ["upside_dcf","upside_mult"]:
+    if "signal" in df_show.columns:
+        df_show["signal"] = df_show["signal"].map(
+            {"buy": "🟢 BUY", "hold": "🟡 HOLD", "sell": "🔴 SELL"}).fillna("⚪ N/A")
+    for col in ["upside_dcf", "upside_mult", "wacc"]:
         if col in df_show.columns:
-            df_show[col] = df_show[col].apply(
-                lambda x: pct(x) if pd.notna(x) else "N/A")
-    if "wacc" in df_show.columns:
-        df_show["wacc"] = df_show["wacc"].apply(
-            lambda x: f"{x*100:.1f}%" if pd.notna(x) else "N/A")
-    for col in ["dcf_price","mult_price","current_price"]:
+            df_show[col] = pd.to_numeric(df_show[col], errors="coerce") * 100
+    for col in ["current_price", "dcf_price", "mult_price"]:
         if col in df_show.columns:
-            df_show[col] = df_show[col].apply(
-                lambda x: money(x) if pd.notna(x) else "N/A")
+            df_show[col] = pd.to_numeric(df_show[col], errors="coerce")
 
-    df_show = df_show.rename(columns={
-        "signal":"Señal","current_price":"Precio Actual",
-        "dcf_price":"Objetivo DCF","mult_price":"Objetivo Múlt.",
-        "upside_dcf":"Upside DCF","upside_mult":"Upside Múlt.",
-        "wacc":"WACC","peers_count":"Peers",
-    })
-    st.dataframe(df_show, use_container_width=True)
+    if "upside_dcf" in df_show.columns:
+        df_show = df_show.sort_values("upside_dcf", ascending=False, na_position="last")
+    st.dataframe(
+        df_show, use_container_width=True, hide_index=True,
+        column_config={
+            "compania": st.column_config.TextColumn("Compañía", width="medium"),
+            "signal": st.column_config.TextColumn("Señal", width="small"),
+            "valuation_model": st.column_config.TextColumn(
+                "Modelo", help="DCF+Mult para no financieras; DDM+P/BV para financieras"),
+            "sector": st.column_config.TextColumn("Sector"),
+            "current_price": st.column_config.NumberColumn("Precio Actual", format="$%.2f"),
+            "dcf_price": st.column_config.NumberColumn(
+                "Obj. Intrínseco", format="$%.2f", help="DCF, o DDM Gordon si es financiera"),
+            "mult_price": st.column_config.NumberColumn(
+                "Obj. Relativo", format="$%.2f", help="Múltiplos de pares, o P/BV aj. ROE si es financiera"),
+            "upside_dcf": st.column_config.NumberColumn("Upside Intr.", format="%+.1f%%"),
+            "upside_mult": st.column_config.NumberColumn("Upside Rel.", format="%+.1f%%"),
+            "wacc": st.column_config.NumberColumn(
+                "WACC/Ke", format="%.1f%%", help="WACC; Ke (costo del equity) si es financiera"),
+            "peers_count": st.column_config.NumberColumn("Peers", format="%d", width="small"),
+        },
+    )
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -734,6 +882,7 @@ def render_f2_edit():
     edited = st.multiselect(
         f"Filtro 2 seleccionó {len(fund_passed)} tickers. Mínimo 3 requeridos:",
         options=sorted(set(all_avail)), default=sorted(set(fund_passed)),
+        format_func=disp,
     )
     st.session_state.final_tickers = edited
     if len(edited) < 3:
@@ -967,152 +1116,3 @@ def run_report():
 # ─────────────────────────────────────────────────────────────────────────────
 # Re-display colapsados
 # ─────────────────────────────────────────────────────────────────────────────
-
-def _redisplay_1_2():
-    prices = st.session_state.df_prices
-    stat   = st.session_state.df_stat
-    buy    = st.session_state.buy_list
-    cfg    = st.session_state.config
-    skip   = st.session_state.skipped
-    if prices is None or stat is None:
-        return
-    with st.expander("📥 Etapa 1+2 — Descarga y Filtro Estadístico", expanded=False):
-        c1,c2,c3 = st.columns(3)
-        kpi(c1,"Descargados",str(len(prices.columns)))
-        kpi(c2,"BUY F1",str(len(buy)),f"score ≥ {cfg.filter1_threshold}",
-            "positive" if buy else "negative")
-        kpi(c3,"Fallidos",str(len(skip)))
-        if not stat.empty:
-            t1,t2,t3 = st.tabs(["📊 Scores","📈 Indicadores Técnicos","📉 Regresión α β R²"])
-            with t1:
-                st.plotly_chart(fig_scores(stat, cfg.filter1_threshold), use_container_width=True)
-                _render_score_table(stat)
-            with t2:
-                sig_cols = [c for c in ["signal_mm","signal_macd","signal_rsi","signal_fib"]
-                            if c in stat.columns]
-                num_cols = [c for c in ["rsi_value","macd_hist","score"] if c in stat.columns]
-                if sig_cols:
-                    df_tech = stat[sig_cols + num_cols].copy()
-                    for c in sig_cols:
-                        df_tech[c] = df_tech[c].apply(_shorten_signal)
-                    if "rsi_value" in df_tech.columns:
-                        df_tech["rsi_value"] = df_tech["rsi_value"].apply(
-                            lambda x: f"{x:.1f}" if pd.notna(x) else "N/A")
-                    if "macd_hist" in df_tech.columns:
-                        df_tech["macd_hist"] = df_tech["macd_hist"].apply(
-                            lambda x: f"{float(x):+.4f}" if pd.notna(x) else "N/A")
-                    df_tech = df_tech.rename(columns={
-                        "signal_mm":"MM","signal_macd":"MACD","signal_rsi":"RSI",
-                        "signal_fib":"Fibonacci","rsi_value":"RSI Valor",
-                        "macd_hist":"MACD Hist","score":"Score"})
-                    st.dataframe(
-                        df_tech.sort_values("Score", ascending=False)
-                        if "Score" in df_tech.columns else df_tech,
-                        use_container_width=True)
-                    st.plotly_chart(fig_technical_indicators(stat), use_container_width=True)
-            with t3:
-                _render_regression_table(stat)
-
-
-def _redisplay_3():
-    fund  = st.session_state.df_fund
-    fpas  = st.session_state.fund_passed
-    edit  = st.session_state.buy_list_edited
-    if fund is None:
-        return
-    with st.expander("🏦 Etapa 3 — Valoración Fundamental (DCF + Múltiplos)", expanded=False):
-        c1,c2 = st.columns(2)
-        kpi(c1,"BUY/HOLD",str(len(fpas)),"","positive" if fpas else "negative")
-        kpi(c2,"SELL",str(len(edit)-len(fpas)))
-        st.markdown("""
-        <div class="info-box">
-        <b>¿Qué es el Upside/Downside?</b><br>
-        Es la diferencia porcentual entre el <b>precio objetivo calculado</b> y el <b>precio actual de mercado</b>.<br>
-        <b>Upside DCF</b> = (Precio objetivo por Flujo de Caja Descontado / Precio actual) &minus; 1 ·
-        Positivo = activo <b style="color:#00C853">subvaluado</b> (potencial de alza) · Negativo = <b style="color:#FF1744">sobrevaluado</b>.<br>
-        <b>Upside Múltiplos de Pares</b> = (Precio objetivo por comparables del sector / Precio actual) &minus; 1 ·
-        Compara P/E, EV/EBITDA, etc. del activo vs sus pares de industria.
-        </div>""", unsafe_allow_html=True)
-        if not fund.empty:
-            f = fig_dcf_comparison(fund)
-            if f:
-                st.plotly_chart(f, use_container_width=True)
-            _render_fund_table(fund)
-
-
-def _redisplay_4():
-    dopt  = st.session_state.df_opt
-    dfron = st.session_state.df_frontier
-    rf    = st.session_state.rf
-    combined = st.session_state.get("combined_portfolio")
-    if dopt is None:
-        return
-    with st.expander("📐 Etapa 4 — Portafolio", expanded=False):
-        best = float(dopt["Sharpe"].max()) if "Sharpe" in dopt.columns else 0
-        c1,c2 = st.columns(2)
-        kpi(c1,"Mejor Sharpe",f"{best:.3f}")
-        kpi(c2,"Rf",f"{rf*100:.2f}%")
-        col_a,col_b = st.columns(2)
-        with col_a:
-            st.plotly_chart(fig_portfolios_scatter(dopt), use_container_width=True)
-        with col_b:
-            st.plotly_chart(fig_frontier_with_portfolios(dfron,dopt), use_container_width=True)
-        if combined:
-            st.markdown("**Portafolio unificado guardado:**")
-            _show_combined_results(combined, "seleccionado")
-
-
-# ─────────────────────────────────────────────────────────────────────────────
-# Main
-# ─────────────────────────────────────────────────────────────────────────────
-def main():
-    params = render_sidebar()
-    stage  = st.session_state.stage
-
-    st.markdown("""
-    <h1 style="font-size:1.7rem;color:#FAFAFA;margin-bottom:4px">📊 Financial Orchestrator</h1>
-    <p style="color:#8B92A5;margin-bottom:18px">
-      Pipeline top-down: estadístico · fundamental · portafolio · investing memo
-    </p>""", unsafe_allow_html=True)
-
-    if params["run"]:
-        reset()
-        st.session_state.stage = 1
-        run_pipeline(params)
-        return
-
-    if stage == 0:
-        render_welcome()
-    elif stage == 1:
-        run_pipeline(params)
-    elif stage == 2:
-        _redisplay_1_2()
-        render_f1_edit()
-    elif stage == 3:
-        _redisplay_1_2()
-        render_f1_edit()
-        run_fundamental()
-    elif stage == 4:
-        _redisplay_1_2()
-        _redisplay_3()
-        render_f2_edit()
-    elif stage == 5:
-        _redisplay_1_2()
-        _redisplay_3()
-        run_portfolio()
-        if st.session_state.get("portfolios_calculated"):
-            _render_combined_portfolio(
-                st.session_state.df_opt,
-                st.session_state.df_rend,
-                st.session_state.final_tickers,
-                st.session_state.rf,
-            )
-    elif stage == 6:
-        _redisplay_1_2()
-        _redisplay_3()
-        _redisplay_4()
-        run_report()
-
-
-if __name__ == "__main__":
-    main()

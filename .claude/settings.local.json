@@ -1,0 +1,17 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(streamlit run *)",
+      "Bash(git --version)",
+      "Bash(gh --version)",
+      "Bash(git init *)",
+      "Bash(git add *)",
+      "Bash(git commit -m ' *)",
+      "Bash(winget install *)",
+      "PowerShell(gh *)",
+      "Bash(pip show *)",
+      "Bash(Start-Process powershell *)",
+      "PowerShell(cd \"D:\\\\Datos Usuario\\\\Documents\\\\PROYECTOS_CLAUDE\\\\financial-orchestrator\"; Start-Process powershell -ArgumentList \"-NoExit\", \"-Command\", \"cd 'D:\\\\Datos Usuario\\\\Documents\\\\PROYECTOS_CLAUDE\\\\financial-orchestrator'; streamlit run streamlit_app.py --server.port 8501\" -WindowStyle Normal)"
+    ]
+  }
+}

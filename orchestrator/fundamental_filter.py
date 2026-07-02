@@ -107,6 +107,9 @@ def run(
         "growth_explicit": config.growth_explicit,
         "terminal_growth": config.terminal_growth,
         "explicit_years": config.explicit_years,
+        # rf para Ke del DDM (financieras). El rf en vivo (^TNX) se calcula
+        # en la etapa 4; aquí usamos override manual o el default del config.
+        "rf": config.rf_override if config.rf_override is not None else config.rf_default,
     }
 
     results: list[dict] = []
@@ -124,11 +127,13 @@ def run(
                 res = future.result()
                 results.append(res)
                 signal_icon = {"buy": "✅", "hold": "🔶", "sell": "❌"}.get(res.get("signal", ""), "⚠️")
+                model = res.get("valuation_model") or "DCF+Mult"
                 print(
                     f"  [{completed:3d}/{total}] {res['ticker']:12s} "
                     f"{signal_icon} {res.get('signal','error'):4s} | "
-                    f"DCF={res.get('upside_dcf', 0) or 0:+.0%}  "
-                    f"Mult={res.get('upside_mult', 0) or 0:+.0%}"
+                    f"{model:8s} | "
+                    f"Intr={res.get('upside_dcf', 0) or 0:+.0%}  "
+                    f"Rel={res.get('upside_mult', 0) or 0:+.0%}"
                 )
             except Exception as e:
                 ticker_err = futures[future]
@@ -141,7 +146,8 @@ def run(
     # Construir df_fund
     df_fund = pd.DataFrame(results).set_index("ticker")
     for col in ["dcf_price", "mult_price", "current_price", "upside_dcf",
-                "upside_mult", "signal", "wacc", "peers_count", "passes_filter2"]:
+                "upside_mult", "signal", "wacc", "peers_count", "passes_filter2",
+                "sector", "valuation_model"]:
         if col not in df_fund.columns:
             df_fund[col] = None
 
@@ -170,15 +176,4 @@ def run(
                 f"WACC={row.get('wacc',0) or 0:.1%}"
             )
 
-    # Pausa interactiva (solo en CLI; Streamlit la maneja con widgets)
-    if tickers_override is not None:
-        final_list = tickers_override
-    elif interactive:
-        final_list = _interactive_edit(passed, "Tickers confirmados para portafolio")
-    else:
-        final_list = passed
-
-    print(f"\n  Lista final después de edición: {final_list}")
-    print(f"{'='*60}\n")
-
-    return df_fund, final_list
+    # Pausa interactiv

@@ -162,6 +162,12 @@ def get_combined_portfolio(
         return optimizacion.portafolio_combinado_sharpe(df_opt, cols)
 
     elif method == "ir" and df_rend is not None and benchmark is not None:
+        if benchmark not in df_rend.columns:
+            raise ValueError(
+                f"Information Ratio requiere los rendimientos del benchmark "
+                f"'{benchmark}' en df_rend (columnas: {list(df_rend.columns)}). "
+                f"Re-ejecuta la etapa de portafolio o usa otro método de ponderación."
+            )
         periodos = {"historico": None}
         df_ir = calculos.information_ratio(df_rend, benchmark, periodos, dias_anio)
         return optimizacion.portafolio_combinado_ir(df_opt, df_ir, cols)
@@ -169,13 +175,4 @@ def get_combined_portfolio(
     elif method == "max_retorno":
         return optimizacion.portafolio_consenso(df_opt, cols, "Max Retorno", 1.0)
 
-    elif method == "min_volatilidad":
-        return optimizacion.portafolio_consenso(df_opt, cols, "Min Volatilidad", 1.0)
-
-    elif method == "consenso":
-        return optimizacion.portafolio_consenso(
-            df_opt, cols, objetivo_principal, peso_principal
-        )
-
-    # Fallback: por Sharpe
-    return optimizacion.portafolio_combinado_sharpe(df_opt, cols)
+    elif method == "min_volatili
